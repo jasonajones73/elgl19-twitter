@@ -1,7 +1,7 @@
 ---
-title: "Pointless Analysis: #ELGL19 Twitter Activity"
+title: "#ELGL19 On Twitter: A Brief Synthesis"
 author: "Jason Jones"
-date: "5/16/2019"
+date: "5/17/2019"
 output:
   html_document:
     theme: flatly
@@ -245,8 +245,6 @@ wordcloud::wordcloud(sentiment$word, sentiment$word_count, colors = c("#0095A8",
 <br>
 
 # Want To Play With The Data Too?
-
-<br>
 
 * [Tweet Data CSV](https://raw.githubusercontent.com/jasonajones73/elgl19-twitter/master/data/tweets.csv)
 * [Tweet Data JSON](https://raw.githubusercontent.com/jasonajones73/elgl19-twitter/master/data/tweets.json)

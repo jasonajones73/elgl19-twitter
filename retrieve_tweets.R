@@ -1,6 +1,6 @@
 ## Purpose: Retrieve and save tweets for #ELGL19
 ## Author: Jason Jones
-## Date: 2019-05-16
+## Date: 2019-05-17
 
 # Load package ----
 library(rtweet)
