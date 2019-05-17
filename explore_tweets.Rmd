@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.width = 10, fig.align = 'center', warning = FALS, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10, fig.align = 'center', warning = FALSE, message = FALSE)
 ```
 
 # The Boring Bits - Hidden But Viewable
@@ -248,6 +248,9 @@ wordcloud::wordcloud(sentiment$word, sentiment$word_count, colors = c("#0095A8",
 
 <br>
 
-* Tweet Data CSV
-* Tweet Data JSON
-* Tweet Data RDS
+* [Tweet Data CSV](https://raw.githubusercontent.com/jasonajones73/elgl19-twitter/master/data/tweets.csv)
+* [Tweet Data JSON](https://raw.githubusercontent.com/jasonajones73/elgl19-twitter/master/data/tweets.json)
+* [Tweet Data RDS](https://github.com/jasonajones73/elgl19-twitter/blob/master/data/tweets.rds?raw=true)
+
+<br>
+<br>
