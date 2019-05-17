@@ -1,0 +1,253 @@
+---
+title: "Pointless Analysis: #ELGL19 Twitter Activity"
+author: "Jason Jones"
+date: "5/16/2019"
+output:
+  html_document:
+    theme: flatly
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10, fig.align = 'center', warning = FALS, message = FALSE)
+```
+
+# The Boring Bits - Hidden But Viewable
+```{r}
+library(tidyverse)
+library(lubridate)
+library(tidytext)
+
+tweets <- read_rds("data/tweets.rds") %>%
+  as_tibble()
+
+f <- function(time) {
+  x <- time
+  hour(x) <- hour(x)-4
+  return(x)
+}
+```
+
+<br>
+
+# 24 Hours of Tweets
+```{r}
+tweets %>%
+  filter(is_retweet == FALSE) %>%
+  mutate(created_at = floor_date(created_at, unit = "hour")) %>%
+  mutate(created_at = f(created_at)) %>%
+  group_by(created_at) %>%
+  summarise(tweet_count = n()) %>%
+  ungroup() %>%
+  arrange(created_at) %>%
+  mutate(running_total = cumsum(tweet_count)) %>%
+  top_n(24, running_total) %>%
+  ggplot(aes(created_at, running_total)) +
+  geom_col(fill = "#112E51") +
+  geom_label(aes(label = scales::comma(running_total)), nudge_y = -50, size = 2) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  labs(title = "New Tweets: #ELGL19",
+       caption = "Author: Jason Jones, @packpridejones",
+       x = NULL, y = NULL) +
+  theme(panel.background = element_blank(),
+        panel.grid.major.y = element_line(color = "light grey"))
+```
+
+<br>
+
+# Retweets Are Tweets Too
+```{r}
+tweets %>%
+  filter(is_retweet == TRUE) %>%
+  mutate(created_at = floor_date(created_at, unit = "hour")) %>%
+  mutate(created_at = f(created_at)) %>%
+  group_by(created_at) %>%
+  summarise(tweet_count = n()) %>%
+  ungroup() %>%
+  arrange(created_at) %>%
+  mutate(running_total = cumsum(tweet_count)) %>%
+  top_n(24, running_total) %>%
+  ggplot(aes(created_at, running_total)) +
+  geom_col(fill = "#FF7043") +
+  geom_label(aes(label = scales::comma(running_total)), nudge_y = -50, size = 2) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  labs(title = "Retweets: #ELGL19",
+       caption = "Author: Jason Jones, @packpridejones",
+       x = NULL, y = NULL) +
+  theme(panel.background = element_blank(),
+        panel.grid.major.y = element_line(color = "light grey"))
+```
+
+<br>
+
+# Biggest Fans
+## Most Original Tweets
+```{r}
+tweets %>%
+  filter(is_retweet == FALSE) %>%
+  group_by(screen_name) %>%
+  summarise(tweets = n()) %>%
+  arrange(desc(tweets)) %>%
+  top_n(100, tweets) %>%
+  DT::datatable(colnames = c("Twitter ID", "Tweet Count"))
+```
+
+<br>
+
+# Cheering Section
+## Most Retweets
+```{r}
+tweets %>%
+  filter(is_retweet == TRUE) %>%
+  group_by(screen_name) %>%
+  summarise(tweets = n()) %>%
+  arrange(desc(tweets)) %>%
+  top_n(100, tweets) %>%
+  DT::datatable(colnames = c("Twitter ID", "Retweet Count"))
+```
+
+<br>
+
+# Enough Already!
+## Top Average Tweet Length
+```{r}
+tweets %>%
+  filter(is_retweet == FALSE) %>%
+  group_by(screen_name) %>%
+  summarise(avg_length = mean(display_text_width)) %>%
+  top_n(15, avg_length) %>%
+  ggplot(aes(reorder(screen_name, avg_length), avg_length)) +
+  geom_col(fill = "#0095A8") +
+  coord_flip() +
+  labs(title = "Average Tweet Length",
+       subtitle = "Top 15",
+       caption = "Author: Jason Jones, @packpridejones",
+       x = NULL, y = NULL) +
+  theme(panel.background = element_blank(),
+        panel.grid.major.x = element_line(color = "light grey"))
+```
+
+<br>
+
+## Short and Sweet
+```{r}
+tweets %>%
+  filter(is_retweet == FALSE) %>%
+  group_by(screen_name) %>%
+  summarise(avg_length = mean(display_text_width)) %>%
+  top_n(-15, avg_length) %>%
+  ggplot(aes(reorder(screen_name, desc(avg_length)), avg_length)) +
+  geom_col(fill = "#0095A8") +
+  coord_flip() +
+  labs(title = "Average Tweet Length",
+       subtitle = "Lowest 15",
+       caption = "Author: Jason Jones, @packpridejones",
+       x = NULL, y = NULL) +
+  theme(panel.background = element_blank(),
+        panel.grid.major.x = element_line(color = "light grey"))
+```
+
+<br>
+
+# Popular Kids
+## Who gets the most replies?
+```{r}
+tweets %>%
+  filter(is.na(reply_to_screen_name) != TRUE) %>%
+  group_by(reply_to_screen_name) %>%
+  summarise(tweets = n()) %>%
+  arrange(desc(tweets)) %>%
+  top_n(100, tweets) %>%
+  DT::datatable(colnames = c("Twitter ID", "Reply Count"))
+```
+
+<br>
+
+# iPhone or Android?
+## Twitter tool of choice
+```{r}
+tweets %>%
+  filter(is_retweet == FALSE) %>%
+  group_by(source) %>%
+  summarise(Count = n()) %>%
+  arrange(desc(Count)) %>%
+  top_n(100, Count) %>%
+  DT::datatable()
+```
+
+<br>
+
+# Stealing Thunder?
+## Retweet has more favorites than original tweet
+```{r}
+tweets %>%
+  filter(favorite_count < retweet_favorite_count) %>%
+  group_by(screen_name) %>%
+  summarise(thunder_stolen = n()) %>%
+  arrange(desc(thunder_stolen)) %>%
+  top_n(100, thunder_stolen) %>%
+  DT::datatable(colnames = c("Screen Name", "Count Of Thunder Steals"))
+```
+
+<br>
+
+# Language Is Important
+## Scoring Tweets by Language Sentiment
+```{r}
+tweets %>%
+  filter(created_at > as.POSIXct("2019-05-15 23:59:59")) %>%
+  mutate(index = row_number()) %>%
+  unnest_tokens("word", text) %>%
+  select(index, created_at, screen_name, word) %>%
+  anti_join(stop_words) %>%
+  mutate(created_at = floor_date(created_at, unit = "hour")) %>%
+  mutate(created_at = f(created_at)) %>%
+  inner_join(get_sentiments(lexicon = "afinn")) %>%
+  group_by(created_at) %>%
+  summarise(score = sum(score)) %>%
+  ungroup() %>%
+  arrange(created_at) %>%
+  mutate(sent_flow = cumsum(score)) %>%
+  ggplot(aes(created_at, sent_flow)) +
+  geom_line() +
+  geom_point(color = "#FF7043", size = 3) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  labs(title = "#ELGL19: Twitter Cumulative Sentiment",
+       subtitle = "Y'all Some Positive People!",
+       caption = "Author: Jason Jones, @packpridejones",
+       x = NULL, y = NULL) +
+  theme(panel.background = element_blank(),
+        panel.grid.major.y = element_line(color = "light grey"))
+```
+
+<br>
+
+## Most Used Words
+```{r}
+sentiment <- tweets %>%
+  filter(created_at > as.POSIXct("2019-05-15 23:59:59")) %>%
+  mutate(index = row_number()) %>%
+  unnest_tokens("word", text) %>%
+  select(index, created_at, screen_name, word) %>%
+  anti_join(stop_words) %>%
+  mutate(created_at = floor_date(created_at, unit = "hour")) %>%
+  mutate(created_at = f(created_at)) %>%
+  inner_join(get_sentiments(lexicon = "bing")) %>%
+  group_by(word) %>%
+  summarise(word_count = n()) %>%
+  ungroup()
+
+wordcloud::wordcloud(sentiment$word, sentiment$word_count, colors = c("#0095A8",
+                                                                      "#112E51",
+                                                                      "#FF7043"))
+```
+
+<br>
+
+# Want To Play With The Data Too?
+
+<br>
+
+* Tweet Data CSV
+* Tweet Data JSON
+* Tweet Data RDS
